@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Ruff
+        run: ruff check .
+      - name: Pytest
+        run: pytest -q
+      - name: Fake runtime eval
+        run: python scripts/eval_runtime_fake.py
+      - name: MCP stdio smoke
+        run: python scripts/smoke_mcp_stdio.py
+      - name: MCP blackbox eval
+        run: python scripts/eval_mcp_blackbox.py
+      - name: Security adversarial eval
+        run: python scripts/eval_security_adversarial.py
+
