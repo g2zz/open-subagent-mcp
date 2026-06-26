@@ -52,7 +52,7 @@ def create_server():
         fork_context: bool = False,
         model: str | None = None,
         dry_run: bool = False,
-        max_steps: int = 80,
+        max_steps: int = 160,
         timeout_seconds: int = 120,
         allowed_external_roots: list[str] | None = None,
         explicit_authorizations: list[str] | None = None,

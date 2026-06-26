@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 import httpx
 import pytest
 
@@ -71,7 +73,41 @@ async def test_http_502_exhaustion_reports_attempt_history() -> None:
     assert exc.value.details["max_attempts"] == 3
     assert exc.value.details["retryable_status"] is True
     assert [item["status_code"] for item in exc.value.details["attempts"]] == [502, 502, 502]
+    assert exc.value.details["request"]["model"] == "m"
+    assert exc.value.details["request"]["message_count"] == 0
     assert calls == 3
+
+
+@pytest.mark.asyncio
+async def test_transient_errors_retry_with_compacted_messages() -> None:
+    calls = 0
+    message_counts: list[int] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal calls
+        calls += 1
+        body = json.loads(request.content)
+        message_counts.append(len(body["messages"]))
+        if calls < 4:
+            return httpx.Response(500, text="")
+        return httpx.Response(
+            200,
+            json={"choices": [{"message": {"content": "{\"action\":\"finish\",\"args\":{}}"}, "finish_reason": "stop"}]},
+        )
+
+    messages = [{"role": "system", "content": "system"}, {"role": "user", "content": "task"}]
+    messages.extend({"role": "user", "content": f"observation {index} " + ("x" * 5000)} for index in range(14))
+    client = OpenAICompatibleClient(
+        Settings(),
+        transport=httpx.MockTransport(handler),
+        max_attempts=5,
+        retry_base_delay_seconds=0,
+    )
+    result = await client.chat(model="m", messages=messages)
+    assert result.finish_reason == "stop"
+    assert calls == 4
+    assert message_counts[:3] == [16, 16, 16]
+    assert message_counts[3] < 16
 
 
 @pytest.mark.asyncio

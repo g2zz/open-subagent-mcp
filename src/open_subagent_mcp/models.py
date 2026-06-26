@@ -117,7 +117,7 @@ class SpawnAgentRequest(BaseModel):
     fork_context: bool = False
     model: str | None = None
     dry_run: bool = False
-    max_steps: int = 80
+    max_steps: int = 160
     timeout_seconds: int = 120
     allowed_external_roots: list[str] = Field(default_factory=list)
     explicit_authorizations: list[Authorization] = Field(default_factory=list)
@@ -190,7 +190,7 @@ class RunState(BaseModel):
     current_segment_id: str
     model: str
     dry_run: bool = False
-    max_steps: int = 80
+    max_steps: int = 160
     timeout_seconds: int = 120
     allowed_external_roots: list[str] = Field(default_factory=list)
     explicit_authorizations: list[Authorization] = Field(default_factory=list)

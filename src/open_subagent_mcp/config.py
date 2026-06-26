@@ -17,7 +17,7 @@ class Settings(BaseModel):
     openai_model_name: str = "openai-compatible-model"
     max_concurrency: int = Field(default=8, ge=1, le=64)
     default_command_timeout_seconds: int = Field(default=120, ge=1)
-    max_steps: int = Field(default=80, ge=1, le=200)
+    max_steps: int = Field(default=160, ge=1, le=200)
     log_truncate_chars: int = Field(default=20000, ge=100)
     runs_dir: Path = Path(__file__).resolve().parents[2] / ".runs"
     sensitive_path_patterns: list[str] = Field(default_factory=list)
@@ -48,7 +48,7 @@ def load_settings() -> Settings:
         default_command_timeout_seconds=_int_env(
             "SUBAGENT_MCP_DEFAULT_COMMAND_TIMEOUT_SECONDS", 120
         ),
-        max_steps=_int_env("SUBAGENT_MCP_MAX_STEPS", 80),
+        max_steps=_int_env("SUBAGENT_MCP_MAX_STEPS", 160),
         log_truncate_chars=_int_env("SUBAGENT_MCP_LOG_TRUNCATE_CHARS", 20000),
         runs_dir=Path(
             os.getenv(
